@@ -2,10 +2,11 @@ import { useApp } from '@/context/TransactionContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Wallet, TrendingUp, TrendingDown, Lock, PiggyBank, QrCode, CreditCard } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Lock, PiggyBank, QrCode, CreditCard, Plus } from 'lucide-react';
 import { getCategoryEmoji, defaultCategories } from '@/lib/categoryEmojis';
 import { getCategoryStatus } from '@/lib/categoryStatus';
 import { getEventSuggestions, getFrequentCategories } from '@/lib/suggestions';
+import { QRScannerDialog } from '@/components/QRScannerDialog';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -75,17 +76,29 @@ export const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Quick Scan Button */}
-      <Card className="bg-primary text-primary-foreground">
-        <CardContent className="p-4">
-          <Button asChild className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90">
-            <Link to="/app/scanner" className="flex items-center justify-center gap-2">
-              <QrCode className="w-5 h-5" />
-              Quick Scan & Pay
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Quick Actions */}
+      <div className="flex gap-3">
+        <QRScannerDialog
+          trigger={
+            <Button size="sm" className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0 hover:from-blue-600 hover:to-indigo-700 shadow-md">
+              <QrCode className="w-4 h-4 mr-2" />
+              Scan & Pay
+            </Button>
+          }
+        />
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/app/add-transaction">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Transaction
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/app/analytics">
+            <TrendingUp className="w-4 h-4 mr-2" />
+            Analytics
+          </Link>
+        </Button>
+      </div>
 
       {/* Lockups & Savings Summary */}
       <div className="grid grid-cols-2 gap-3">
