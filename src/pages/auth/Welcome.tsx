@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Wallet, TrendingUp, PiggyBank } from 'lucide-react';
+import { DollarSign, TrendingUp, PiggyBank } from 'lucide-react';
 
 export const Welcome = () => {
   return (
@@ -8,8 +8,8 @@ export const Welcome = () => {
       <div className="w-full max-w-md text-center">
         {/* App Icon */}
         <div className="mb-8">
-          <div className="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center mx-auto mb-4">
-            <Wallet className="w-10 h-10 text-primary-foreground" />
+          <div className="w-20 h-20 mx-auto mb-4">
+            <img src="/logo.svg" alt="MoneySmart Logo" className="w-full h-full" />
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Student Money Tracker
@@ -28,7 +28,7 @@ export const Welcome = () => {
               <p className="text-sm text-muted-foreground">Monitor your spending habits</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3 p-4 bg-card rounded-2xl shadow-sm">
             <PiggyBank className="w-8 h-8 text-saving" />
             <div className="text-left">
@@ -43,7 +43,7 @@ export const Welcome = () => {
           <Button asChild className="w-full h-12 text-base font-semibold">
             <Link to="/auth/login">Get Started</Link>
           </Button>
-          
+
           <Button asChild variant="outline" className="w-full h-12 text-base">
             <Link to="/auth/register">Create Account</Link>
           </Button>
