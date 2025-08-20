@@ -12,46 +12,22 @@ export const Scanner = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string>('');
   const [scanResult, setScanResult] = useState<string>('');
-  const [hasCamera, setHasCamera] = useState<boolean | null>(null);
+  const [hasCamera, setHasCamera] = useState<boolean | null>(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const qrScannerRef = useRef<QrScanner | null>(null);
 
-  // Check if camera is available using multiple methods
+  // Start camera immediately on mount
   useEffect(() => {
-    const checkCameraAvailability = async () => {
-      try {
-        // Method 1: Try to enumerate media devices
-        if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-          const devices = await navigator.mediaDevices.enumerateDevices();
-          const hasVideoDevice = devices.some(device => device.kind === 'videoinput');
+    // Set camera as available immediately and start
+    setHasCamera(true);
 
-          if (hasVideoDevice) {
-            // Method 2: Also check QrScanner's method
-            const qrScannerHasCamera = await QrScanner.hasCamera();
-            setHasCamera(qrScannerHasCamera);
-          } else {
-            setHasCamera(false);
-            setError('No camera found on this device');
-          }
-        } else {
-          // Fallback: Try QrScanner method only
-          const qrScannerHasCamera = await QrScanner.hasCamera();
-          setHasCamera(qrScannerHasCamera);
-          if (!qrScannerHasCamera) {
-            setError('No camera found on this device');
-          }
-        }
-      } catch (err) {
-        console.error('Error checking camera availability:', err);
-        // If all checks fail, assume camera is available and let user try
-        setHasCamera(true);
-        setError('');
-      }
-    };
-
-    checkCameraAvailability();
+    // Start camera with a small delay to allow component to mount
+    const timer = setTimeout(() => {
+      handleStartCamera();
+    }, 100);
 
     return () => {
+      clearTimeout(timer);
       // Cleanup scanner on unmount
       if (qrScannerRef.current) {
         qrScannerRef.current.stop();
@@ -71,13 +47,6 @@ export const Scanner = () => {
     try {
       setError('');
       setIsScanning(true);
-
-      // If camera availability is still being checked, wait a moment
-      if (hasCamera === null) {
-        setError('Checking camera availability...');
-        setIsScanning(false);
-        return;
-      }
 
       // Wait a bit for the video element to be rendered
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -211,94 +180,87 @@ export const Scanner = () => {
   };
 
   return (
-    <div className="max-w-lg mx-auto p-4 space-y-4">
-      <div className="pt-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <QrCode className="w-6 h-6" />
-          QR Scanner
-        </h1>
-        <p className="text-muted-foreground">Scan QR codes with your camera</p>
-      </div>
+    <div className="p-4 max-w-md mx-auto">
+      {/* Header Card */}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <QrCode className="w-5 h-5" />
+              QR Scanner
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => navigate(-1)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </CardTitle>
+        </CardHeader>
+      </Card>
 
+      {/* Scanner Card */}
       <Card>
-        <CardContent className="p-8 text-center">
-          {hasCamera === null && (
-            <div className="text-center mb-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-b-transparent mx-auto mb-2"></div>
-              <p className="text-muted-foreground">Checking camera availability...</p>
-            </div>
-          )}
-
-          {hasCamera === false && (
-            <div className="text-center mb-4">
-              <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-2" />
-              <p className="text-destructive">Camera not available on this device</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Try refreshing the page or check camera permissions
-              </p>
-            </div>
-          )}
-
-          {/* Video container - always present but conditionally visible */}
-          <div
-            data-video-container
-            className="relative"
-            style={{ display: isCameraActive ? 'block' : 'none' }}
-          >
-            <div className="relative inline-block">
-              <video
-                ref={videoRef}
-                className="w-full max-w-sm mx-auto rounded-lg mb-4"
-                style={{ maxHeight: '300px' }}
-                playsInline
-                autoPlay
-                muted
-              />
-
-              <div className="absolute top-2 right-2">
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={stopCamera}
-                  className="p-2"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+        <CardContent className="p-4">
+          {/* Camera View */}
+          <div className="relative aspect-square bg-gray-900 rounded-lg overflow-hidden mb-4 flex items-center justify-center">
+            {hasCamera === false && (
+              <div className="text-center text-white">
+                <AlertCircle className="w-12 h-12 mx-auto mb-2" />
+                <p>Camera not available</p>
+                <p className="text-sm opacity-70 mt-2">Try refreshing or check permissions</p>
               </div>
-            </div>
+            )}
 
-            <div className="space-y-2">
-              {scanResult ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-center gap-2 text-green-800 mb-2">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-medium">QR Code Detected!</span>
-                  </div>
-                  <p className="text-sm text-green-700 break-words">
-                    {scanResult}
+            {/* Video */}
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover"
+              style={{ display: isCameraActive ? 'block' : 'none' }}
+              playsInline
+              autoPlay
+              muted
+            />
+
+            {/* Loading overlay */}
+            {!isCameraActive && hasCamera === true && (
+              <div className="text-center text-white">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-b-transparent mx-auto mb-2"></div>
+                <p>Starting Camera...</p>
+                <p className="text-sm opacity-70">Please allow camera access</p>
+              </div>
+            )}
+
+            {/* Success overlay */}
+            {scanResult && (
+              <div className="absolute inset-0 bg-green-500/90 flex items-center justify-center rounded-lg">
+                <div className="text-center text-white p-6">
+                  <CheckCircle className="w-16 h-16 mx-auto mb-4" />
+                  <p className="text-xl font-bold mb-2">QR Code Detected!</p>
+                  <p className="text-sm opacity-90 break-words max-w-xs">
+                    {scanResult.length > 50 ? scanResult.substring(0, 50) + '...' : scanResult}
                   </p>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  {isScanning ? 'Starting camera...' : 'Point your camera at a QR code'}
-                </p>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Scanning overlay */}
+            {isCameraActive && !scanResult && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-48 h-48 border-2 border-white border-opacity-50 rounded-lg relative">
+                  <div className="absolute inset-4 border-2 border-white rounded-lg animate-pulse"></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center">
+                    <p className="text-sm">Point camera at QR code</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Camera preview placeholder - show when camera not active */}
-          {!isCameraActive && hasCamera === true && (
-            <div>
-              <div className="w-24 h-24 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Camera className="w-12 h-12 text-muted-foreground" />
-              </div>
-              <h3 className="font-semibold mb-2">Camera Preview</h3>
-              <p className="text-muted-foreground mb-6">Point camera at QR code to scan</p>
-            </div>
-          )}
-
+          {/* Controls and Error Messages */}
           {error && (
-            <div className="bg-destructive/10 text-destructive p-3 rounded-lg mb-4 text-sm">
+            <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm mb-4">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-4 h-4" />
                 {error}
@@ -306,84 +268,54 @@ export const Scanner = () => {
             </div>
           )}
 
-          <div className="space-y-3">
+          <div className="flex gap-3 mb-4">
             {!isCameraActive && hasCamera === true ? (
               <Button
-                className="w-full"
+                className="flex-1"
                 onClick={handleStartCamera}
-                disabled={isScanning || hasCamera === null}
+                disabled={isScanning}
               >
                 {isScanning ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-b-transparent mr-2"></div>
-                    Starting Camera...
+                    Starting...
                   </>
                 ) : (
                   <>
                     <Camera className="w-4 h-4 mr-2" />
-                    Open QR Scanner
+                    Open Scanner
                   </>
                 )}
               </Button>
-            ) : hasCamera === false ? (
-              <Button
-                className="w-full"
-                onClick={handleStartCamera}
-                variant="outline"
-                disabled={false}
-              >
-                <Camera className="w-4 h-4 mr-2" />
-                Try Camera Access
-              </Button>
             ) : isCameraActive ? (
-              <div className="space-y-3">
+              <>
                 {scanResult && (
                   <Button
-                    className="w-full"
+                    className="flex-1"
                     onClick={resumeScanning}
                     variant="secondary"
                   >
                     <QrCode className="w-4 h-4 mr-2" />
-                    Scan Another Code
+                    Scan Again
                   </Button>
                 )}
-
-                <Button className="w-full" onClick={stopCamera} variant="outline">
+                <Button
+                  className="flex-1"
+                  onClick={stopCamera}
+                  variant="outline"
+                >
                   <X className="w-4 h-4 mr-2" />
-                  Close Scanner
+                  Close
                 </Button>
-              </div>
+              </>
             ) : null}
-
-            <Button variant="outline" className="w-full" disabled={!scanResult}>
-              <CreditCard className="w-4 h-4 mr-2" />
-              {scanResult ? 'Process Payment' : 'Scan QR to Continue'}
-            </Button>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader><CardTitle>Scanner Info</CardTitle></CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>• Real QR code scanning with camera</p>
-          <p>• Supports various QR code formats</p>
-          <p>• Requires camera permissions</p>
-          <p>• Works best in good lighting</p>
           {!window.isSecureContext && (
-            <p className="text-amber-600">• ⚠️ HTTPS required for camera access on mobile</p>
+            <p className="text-xs text-amber-600 text-center">
+              ⚠️ HTTPS required for camera access on mobile
+            </p>
           )}
-          {window.isSecureContext && (
-            <p className="text-green-600">• ✅ Secure context (HTTPS) detected</p>
-          )}
-          <p className="text-xs">
-            • Camera Status: {hasCamera === null ? 'Checking...' : hasCamera === true ? 'Available' : 'Not Found'}
-          </p>
-          <p className="text-xs">
-            • Browser: {navigator.userAgent.includes('Chrome') ? 'Chrome' :
-              navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') ? 'Safari' :
-                navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Unknown'}
-          </p>
         </CardContent>
       </Card>
     </div>

@@ -77,28 +77,7 @@ export const Dashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="flex gap-3">
-        <QRScannerDialog
-          trigger={
-            <Button size="sm" className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0 hover:from-blue-600 hover:to-indigo-700 shadow-md">
-              <QrCode className="w-4 h-4 mr-2" />
-              Scan & Pay
-            </Button>
-          }
-        />
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/app/add-transaction">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Transaction
-          </Link>
-        </Button>
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/app/analytics">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Analytics
-          </Link>
-        </Button>
-      </div>
+      
 
       {/* Lockups & Savings Summary */}
       <div className="grid grid-cols-2 gap-3">
