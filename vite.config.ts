@@ -8,6 +8,8 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    // HTTPS is required for camera access on mobile devices
+    https: process.env.HTTPS === 'true' ? {} : false
   },
   plugins: [
     react(),
