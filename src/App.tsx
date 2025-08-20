@@ -23,6 +23,9 @@ import { Lockups } from "@/pages/Lockups";
 import { Savings } from "@/pages/Savings";
 import { SplitBorrow } from "@/pages/SplitBorrow";
 import { Scanner } from "@/pages/Scanner";
+import { CameraTest } from "@/pages/CameraTest";
+import { SimpleScanner } from "@/pages/SimpleScanner";
+import { ComingSoon } from "@/pages/ComingSoon";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,12 +45,12 @@ const App = () => (
           <Routes>
             {/* Redirect root to welcome */}
             <Route path="/" element={<Navigate to="/auth/welcome" replace />} />
-            
+
             {/* Auth routes */}
             <Route path="/auth/welcome" element={<Welcome />} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/register" element={<Register />} />
-            
+
             {/* Protected app routes */}
             <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="dashboard" element={<Dashboard />} />
@@ -62,7 +65,12 @@ const App = () => (
               <Route path="split" element={<SplitBorrow />} />
               <Route path="scanner" element={<Scanner />} />
             </Route>
-            
+
+            {/* Debug routes - accessible without login */}
+            <Route path="/camera-test" element={<CameraTest />} />
+            <Route path="/simple-scanner" element={<SimpleScanner />} />
+            <Route path="/coming-soon" element={<ComingSoon />} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
